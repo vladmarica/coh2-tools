@@ -1,0 +1,39 @@
+{
+  "name": "coh2-veterancy-downloader",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "npm run build -- --watch",
+    "_start": "node build/main.js",
+    "download:localization": "npm run _start -- --output-dir ./build --type localization",
+    "download:veterancy": "npm run _start -- --output-dir ./build --type veterancy",
+    "download:attributes": "npm run _start -- --output-dir ./build --type attributes"
+  },
+  "author": "Vlad Marica",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/cheerio": "^0.22.18",
+    "@types/commander": "^2.12.2",
+    "@types/mkdirp": "^1.0.0",
+    "@types/node": "^13.13.4",
+    "@types/node-fetch": "^2.5.7",
+    "@types/read": "0.0.28",
+    "@typescript-eslint/eslint-plugin": "^2.31.0",
+    "@typescript-eslint/parser": "^2.31.0",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-typescript": "^7.2.1",
+    "eslint-plugin-import": "^2.20.2",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.3",
+    "commander": "^5.1.0",
+    "dayjs": "^1.8.26",
+    "mkdirp": "^1.0.4",
+    "node-fetch": "^2.6.0",
+    "read": "^1.0.7",
+    "winston": "^3.2.1",
+    "winston-transport": "^4.3.0"
+  }
+}
