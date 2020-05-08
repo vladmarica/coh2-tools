@@ -21,9 +21,9 @@ async function getDepotUpdateDate(depot: number): Promise<dayjs.Dayjs> {
   const $ = cheerio.load(html);
   const dateString = $(QUERY_STRING).first().find('.timeago').attr('title');
 
-  logger.info(`Depot ${depot} was last updated on ${dateString}`);
+  logger.debug(`Depot ${depot} was last updated on ${dateString}`);
 
-  return dayjs(dateString); // TODO: update this to the actual alue
+  return dayjs(dateString);
 }
 
 export default {
