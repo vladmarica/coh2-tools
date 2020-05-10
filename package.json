@@ -6,9 +6,9 @@
     "build": "tsc",
     "build:watch": "npm run build -- --watch",
     "_start": "node build/main.js",
-    "download:localization": "npm run _start -- --output-dir ./build --type localization",
-    "download:veterancy": "npm run _start -- --output-dir ./build --type veterancy",
-    "download:attributes": "npm run _start -- --output-dir ./build --type attributes"
+    "download:localization": "npm run _start -- --output-dir ./output --type localization",
+    "download:veterancy": "npm run _start -- --output-dir ./output --type veterancy",
+    "download:attributes": "npm run _start -- --output-dir ./output --type attributes"
   },
   "author": "Vlad Marica",
   "license": "MIT",

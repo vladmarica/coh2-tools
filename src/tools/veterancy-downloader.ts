@@ -2,21 +2,22 @@ import fetch from 'node-fetch';
 import cheerio from 'cheerio';
 import fs from 'fs';
 import path from 'path';
-import date from 'dayjs';
+import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import logger from '../util/logger';
-import { DataExtractor, DataExtractorResult } from './base-data-extractor';
+import createExtractor, { DataExtractorFunc, DataExtractorResult } from './base-data-extractor';
 
-date.extend(customParseFormat);
+dayjs.extend(customParseFormat);
 
 type UnitVeterancyMap = { [unitName: string]: string[] };
 type VeterancyData = {
-  lastUpdated: string;
+  lastUpdated: dayjs.Dayjs;
   data: { [armyName: string]: UnitVeterancyMap };
 };
 
 const VETERANCY_URL = 'https://www.coh2.org/guides/29892/the-company-of-heroes-2-veterancy-guide';
 const VETERANCY_DATE_FORMAT = 'M-D-YY';
+const OUTPUT_DATE_FORMAT = 'DD-MM-YYYY';
 const OUTPUT_FILE_NAME = 'veterancy.json';
 
 async function downloadVeterancyData(): Promise<VeterancyData> {
@@ -32,16 +33,16 @@ async function downloadVeterancyData(): Promise<VeterancyData> {
     throw new Error('Could not parse last updated date from page');
   }
 
-  const lastUpdated = date(dateMatch[0], VETERANCY_DATE_FORMAT);
+  const lastUpdated = dayjs(dateMatch[0], VETERANCY_DATE_FORMAT);
   if (!lastUpdated.isValid()) {
     throw new Error(`Could not parse date: ${dateMatch[0]}`);
   }
 
-  logger.info(`Last updated: ${date().diff(lastUpdated, 'day')} days ago`);
+  logger.info(`Last updated: ${dayjs().diff(lastUpdated, 'day')} days ago`);
 
   const result: VeterancyData = {
     data: {},
-    lastUpdated: lastUpdated.format('DD-MM-YYYY'),
+    lastUpdated,
   };
 
   let currentArmyName = '';
@@ -59,7 +60,6 @@ async function downloadVeterancyData(): Promise<VeterancyData> {
       }
 
       currentArmyName = header.text();
-      logger.debug(currentArmyName);
       result.data[currentArmyName] = {};
     } else {
       const tables = section.find('.post_content_table');
@@ -68,7 +68,6 @@ async function downloadVeterancyData(): Promise<VeterancyData> {
         const table = query(tableElement).first();
         const unitName = table.find('tbody > tr:first-child > td:nth-child(2)').text();
         result.data[armyName][unitName] = new Array<string>(3);
-        logger.debug(`\t${unitName}`);
 
         const vetElements = table.find('tbody > tr').slice(1).find('td:nth-child(2)');
         vetElements.each((_, rowElement) => {
@@ -81,26 +80,37 @@ async function downloadVeterancyData(): Promise<VeterancyData> {
   return result;
 }
 
-const VeterancyDownloader: DataExtractor = async (opts) => {
+const VeterancyDownloader: DataExtractorFunc = async (opts) => {
   logger.info('Downloading latest veterancy data...');
 
   const veterancyData = await downloadVeterancyData();
-  const outputDirPath = path.join(opts.outputPath, veterancyData.lastUpdated);
+  const lastUpdatedDateString = veterancyData.lastUpdated.format(OUTPUT_DATE_FORMAT);
+  const outputDirPath = path.join(opts.outputPath, lastUpdatedDateString);
+
   const result: DataExtractorResult = {
-    outputId: veterancyData.lastUpdated,
+    metadata: {
+      extractedOn: dayjs().toString(),
+      lastUpdated: veterancyData.lastUpdated.toString(),
+    },
+    finalOutputPath: outputDirPath,
     completed: false,
   };
 
+  logger.debug(outputDirPath);
   if (!fs.existsSync(outputDirPath)) {
     fs.mkdirSync(outputDirPath);
-    fs.writeFileSync(path.join(outputDirPath, OUTPUT_FILE_NAME), JSON.stringify(veterancyData, null, 2), 'utf8');
+    fs.writeFileSync(
+      path.join(outputDirPath, OUTPUT_FILE_NAME),
+      JSON.stringify(veterancyData, null, 2),
+      'utf8',
+    );
     result.completed = true;
   } else {
-    logger.warn(`Veterancy data already downloaded for ${veterancyData.lastUpdated}`);
+    logger.warn(`Veterancy data already downloaded for ${lastUpdatedDateString}`);
     result.completed = false;
   }
 
   return result;
 };
 
-export default VeterancyDownloader;
+export default createExtractor(VeterancyDownloader);

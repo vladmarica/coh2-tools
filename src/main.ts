@@ -1,7 +1,7 @@
 import { program } from 'commander';
 import mkdirp from 'mkdirp';
 import path from 'path';
-import { DataExtractor } from './tools/base-data-extractor';
+import { DataExtractorFunc } from './tools/base-data-extractor';
 import VeterancyDownloader from './tools/veterancy-downloader';
 import LocalizationDownloader from './tools/localization-downloader';
 import AttributesDownloader from './tools/attributes-downloader';
@@ -22,7 +22,7 @@ async function main() {
     program.requiredOption('--type <datatype>', `Type of data to download. Valid types are ${validTypesString}`);
     program.parse();
 
-    let extractor: DataExtractor;
+    let extractor: DataExtractorFunc;
     switch (program.type) {
       case DataTypes.Veterancy: {
         extractor = VeterancyDownloader;

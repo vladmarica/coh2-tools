@@ -1,0 +1,7 @@
+{
+    "editor.tabSize": 2,
+    "eslint.enable": true,
+    "files.watcherExclude": {
+        "**/output/attributes/**": true
+    }
+}
