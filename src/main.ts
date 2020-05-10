@@ -1,6 +1,7 @@
 import { program } from 'commander';
 import mkdirp from 'mkdirp';
 import path from 'path';
+import fs from 'fs';
 import { DataExtractorFunc } from './tools/base-data-extractor';
 import VeterancyDownloader from './tools/veterancy-downloader';
 import LocalizationDownloader from './tools/localization-downloader';
@@ -46,9 +47,18 @@ async function main() {
 
     const result = await extractor({ outputPath: outputDir });
     if (result.completed) {
+      // Create 'latest' symlink
+      const symlinkPath = path.join(outputDir, 'latest');
+      const symlinkTargetPath = path.relative(outputDir, result.finalOutputPath);
+      if (fs.existsSync(symlinkPath)) {
+        fs.unlinkSync(symlinkPath);
+      }
+      fs.symlinkSync(symlinkTargetPath, symlinkPath, 'dir');
+
+
       logger.info(`Successfully finished extracting: ${program.type}`);
     } else {
-      logger.error(`Extracting '${program.type}' was not completed successfully`);
+      logger.error(`Extracting '${program.type}' did not complete successfully`);
     }
   } catch (err) {
     let msg = err;
